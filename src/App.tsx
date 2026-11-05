@@ -202,7 +202,6 @@ export default function App() {
                   autoPlay 
                   muted 
                   playsInline 
-                  controls 
                   className="w-full h-full object-cover transform scale-105 transition-transform duration-1000"
                 />
               </div>
