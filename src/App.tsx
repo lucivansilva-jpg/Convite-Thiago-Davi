@@ -14,7 +14,6 @@ interface RSVP {
   id: string;
   name: string;
   guestsCount: number;
-  phone: string;
   message: string;
   createdAt: string;
 }
@@ -30,10 +29,8 @@ export default function App() {
   // RSVP Form State
   const [rsvpName, setRsvpName] = useState<string>('');
   const [guestsCount, setGuestsCount] = useState<number>(1);
-  const [rsvpPhone, setRsvpPhone] = useState<string>('');
   const [rsvpMessage, setRsvpMessage] = useState<string>('');
   const [rsvpsList, setRsvpsList] = useState<RSVP[]>([]);
-  const [rsvpSuccess, setRsvpSuccess] = useState<boolean>(false);
 
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -44,8 +41,8 @@ export default function App() {
       try { setRsvpsList(JSON.parse(savedRsvps)); } catch(e) {}
     } else {
       const initialRsvps: RSVP[] = [
-        { id: '1', name: 'Família Silva', guestsCount: 3, phone: '(85) 99999-1234', message: 'Estamos ansiosos para a festa!', createdAt: '2026-11-01' },
-        { id: '2', name: 'Duda e Mamãe', guestsCount: 2, phone: '(85) 98888-5678', message: 'Viva o Thiago Davi!', createdAt: '2026-11-02' }
+        { id: '1', name: 'Família Silva', guestsCount: 3, message: 'Estamos ansiosos para a festa!', createdAt: '2026-11-01' },
+        { id: '2', name: 'Duda e Mamãe', guestsCount: 2, message: 'Viva o Thiago Davi!', createdAt: '2026-11-02' }
       ];
       setRsvpsList(initialRsvps);
       localStorage.setItem('thiago_davi_rsvps', JSON.stringify(initialRsvps));
@@ -91,33 +88,36 @@ export default function App() {
 
   const handleRsvpSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!rsvpName.trim() || !rsvpPhone.trim()) return;
+    if (!rsvpName.trim()) return;
+
+    // Brief confetti animation without delaying WhatsApp opening
+    triggerConfetti();
 
     const newRsvp: RSVP = {
       id: Date.now().toString(),
       name: rsvpName.trim(),
       guestsCount: Number(guestsCount) || 1,
-      phone: rsvpPhone.trim(),
       message: rsvpMessage.trim(),
       createdAt: new Date().toLocaleDateString('pt-BR')
     };
 
     const updated = [newRsvp, ...rsvpsList];
     saveRsvpStorage(updated);
-    setRsvpSuccess(true);
-    triggerConfetti();
 
-    // Open WhatsApp URL to number 5585998653614
-    const message = encodeURIComponent(
-      `Olá! Confirmo presença no aniversário do Thiago Davi (4 anos).\n\n*Nome:* ${rsvpName.trim()}\n*Pessoas:* ${guestsCount}\n*Telefone:* ${rsvpPhone.trim()}\n*Mensagem:* ${rsvpMessage.trim() || 'Nenhuma'}`
-    );
-    const whatsappUrl = `https://wa.me/5585998653614?text=${message}`;
+    // Format WhatsApp message as specified
+    let messageText = `🌻 Olá! Aqui é ${rsvpName.trim()}. Confirmo presença no aniversário de 4 anos do Thiago Davi!\n👥 Total de pessoas: ${guestsCount}`;
+    if (rsvpMessage.trim()) {
+      messageText += `\n💛 ${rsvpMessage.trim()}`;
+    }
+
+    const whatsappUrl = `https://wa.me/5585998653614?text=${encodeURIComponent(messageText)}`;
     window.open(whatsappUrl, '_blank');
 
+    // Reset and close modal
     setRsvpName('');
-    setRsvpPhone('');
     setRsvpMessage('');
     setGuestsCount(1);
+    setIsRsvpOpen(false);
   };
 
   return (
@@ -212,7 +212,7 @@ export default function App() {
                   onClick={() => setIsRsvpOpen(true)}
                   className="bg-green-600 hover:bg-green-700 text-white font-bold px-8 py-3.5 rounded-2xl shadow-lg transition transform hover:-translate-y-0.5 flex items-center gap-2 text-base"
                 >
-                  <CheckCircle2 size={20} /> Confirmar Presença
+                  🌻 Vou à festa!
                 </button>
                 <button 
                   onClick={() => setIsLocationOpen(true)}
@@ -271,28 +271,63 @@ export default function App() {
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border-4 border-amber-500 space-y-6 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b pb-4">
-              <h3 className="text-xl font-black text-amber-900">Confirmar Presença</h3>
-              <button onClick={() => setIsRsvpOpen(false)} className="bg-gray-100 w-8 h-8 rounded-full font-bold">✕</button>
-            </div>
-            {rsvpSuccess ? (
-              <div className="bg-green-50 border-2 border-green-500 rounded-2xl p-6 text-center space-y-3">
-                <h3 className="text-xl font-black text-green-800">Presença Confirmada!</h3>
-                <p className="text-green-700 text-sm">Obrigado por confirmar!</p>
-                <button onClick={() => setIsRsvpOpen(false)} className="bg-green-600 text-white px-5 py-2 rounded-xl text-sm font-bold">Fechar</button>
+              <div>
+                <h3 className="text-xl font-black text-amber-900">Confirme sua presença</h3>
+                <p className="text-xs text-amber-800/80 mt-0.5">O Thiago Davi está esperando você para uma aventura no sítio!</p>
               </div>
-            ) : (
-              <form onSubmit={handleRsvpSubmit} className="space-y-4">
-                <input type="text" required placeholder="Nome Completo / Família" value={rsvpName} onChange={(e) => setRsvpName(e.target.value)} className="w-full px-4 py-3 rounded-xl border-2 border-amber-200 bg-amber-50/50" />
-                <div className="grid grid-cols-2 gap-4">
-                  <select value={guestsCount} onChange={(e) => setGuestsCount(Number(e.target.value))} className="w-full px-4 py-3 rounded-xl border-2 border-amber-200 bg-amber-50/50">
-                    {[1, 2, 3, 4, 5, 6, 7, 8].map(num => <option key={num} value={num}>{num} {num === 1 ? 'pessoa' : 'pessoas'}</option>)}
-                  </select>
-                  <input type="text" required placeholder="WhatsApp" value={rsvpPhone} onChange={(e) => setRsvpPhone(e.target.value)} className="w-full px-4 py-3 rounded-xl border-2 border-amber-200 bg-amber-50/50" />
-                </div>
-                <textarea rows={3} placeholder="Mensagem (Opcional)" value={rsvpMessage} onChange={(e) => setRsvpMessage(e.target.value)} className="w-full px-4 py-3 rounded-xl border-2 border-amber-200 bg-amber-50/50" />
-                <button type="submit" className="w-full bg-amber-600 text-white font-bold py-4 rounded-xl">Enviar Confirmação</button>
-              </form>
-            )}
+              <button onClick={() => setIsRsvpOpen(false)} className="bg-gray-100 hover:bg-gray-200 text-gray-700 w-8 h-8 rounded-full font-bold flex items-center justify-center">✕</button>
+            </div>
+
+            <form onSubmit={handleRsvpSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold uppercase text-amber-900 mb-1">Seu nome ou nome da família *</label>
+                <input 
+                  type="text" 
+                  required 
+                  placeholder="Ex: Família Souza ou Tia Joana" 
+                  value={rsvpName} 
+                  onChange={(e) => setRsvpName(e.target.value)} 
+                  className="w-full px-4 py-3 rounded-xl border-2 border-amber-200 focus:border-amber-500 focus:outline-none text-amber-950 font-medium bg-amber-50/50" 
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase text-amber-900 mb-1">Quantas pessoas vão, contando com você?</label>
+                <select 
+                  value={guestsCount} 
+                  onChange={(e) => setGuestsCount(Number(e.target.value))} 
+                  className="w-full px-4 py-3 rounded-xl border-2 border-amber-200 focus:border-amber-500 focus:outline-none text-amber-950 font-medium bg-amber-50/50"
+                >
+                  <option value={1}>1 pessoa</option>
+                  {[2, 3, 4, 5, 6, 7, 8].map(num => (
+                    <option key={num} value={num}>{num} pessoas</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase text-amber-900 mb-1">Recadinho para o Thiago Davi (Opcional)</label>
+                <textarea 
+                  rows={3} 
+                  placeholder="Deixe um recado carinhoso..." 
+                  value={rsvpMessage} 
+                  onChange={(e) => setRsvpMessage(e.target.value)} 
+                  className="w-full px-4 py-3 rounded-xl border-2 border-amber-200 focus:border-amber-500 focus:outline-none text-amber-950 font-medium bg-amber-50/50 resize-none" 
+                />
+              </div>
+
+              <div className="pt-2">
+                <button 
+                  type="submit" 
+                  className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-4 rounded-xl shadow-lg transition transform hover:-translate-y-0.5 flex items-center justify-center gap-2 text-base"
+                >
+                  <Send size={18} /> Enviar pelo WhatsApp
+                </button>
+                <p className="text-center text-[11px] text-gray-500 mt-2">
+                  A mensagem vai abrir pronta. É só tocar em Enviar no WhatsApp.
+                </p>
+              </div>
+            </form>
           </div>
         </div>
       )}
