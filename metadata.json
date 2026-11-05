@@ -1,0 +1,6 @@
+{
+  "name": "Convite Thiago Davi 4 anos - Sítio do Picapau Amarelo",
+  "description": "Convite interativo de aniversário com vídeo de abertura, confirmação de presença (RSVP), contagem regressiva e mural de recados.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
