@@ -150,7 +150,7 @@ export default function App() {
           <div className="relative w-full max-w-sm sm:max-w-md aspect-[9/16] max-h-[80vh] bg-black rounded-3xl overflow-hidden shadow-2xl border-4 border-amber-400/50 flex items-center justify-center">
             <video
               ref={videoRef}
-              src="/public/assets/aistudio/WhatsApp_Video_2026-11-05_at_09.59.22_fed538d8.mp4"
+              src="/assets/aistudio/WhatsApp_Video_2026-11-05_at_09.59.22_fed538d8.mp4"
               className="w-full h-full object-cover"
               autoPlay
               playsInline
@@ -198,7 +198,7 @@ export default function App() {
               
               <div className="rounded-2xl overflow-hidden shadow-inner max-w-lg mx-auto bg-amber-50 aspect-[9/16]">
                 <video 
-                  src="/public/assets/aistudio/Vem_viver_essa_aventura_comigo___1__573f417d.mp4" 
+                  src="/assets/aistudio/Vem_viver_essa_aventura_comigo___1__573f417d.mp4" 
                   autoPlay 
                   muted 
                   playsInline 
